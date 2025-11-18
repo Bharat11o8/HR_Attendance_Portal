@@ -173,6 +173,35 @@ def process_attendance(records, start_date, end_date):
                     
                     late_by = " ".join(parts)
                 
+                # Calculate Total working Hours
+                in_datetime = datetime.combine(date, in_time)
+                out_datetime = datetime.combine(date, out_time)
+                work_duration = out_datetime - in_datetime
+                work_total_seconds = int(work_duration.total_seconds())
+                work_hours = work_total_seconds // 3600
+                work_minutes = (work_total_seconds % 3600) // 60
+                work_seconds = work_total_seconds % 60
+                total_working_hours = f"{work_hours:02d}:{work_minutes:02d}:{work_seconds:02d}"
+                
+                # Calculate Overtime (for Rishi ID=2 and Saurabh ID=26)
+                overtime = ''
+                ot_time = ''
+                ot_threshold = datetime.strptime('18:00:00', '%H:%M:%S').time()
+                
+                if emp_id in [2, 26]:  # Rishi and Saurabh
+                    if out_time > ot_threshold:
+                        overtime = 'yes'
+                        
+                        # Calculate OT time only for Saurabh (ID=26)
+                        if emp_id == 26:
+                            ot_threshold_datetime = datetime.combine(date, ot_threshold)
+                            ot_duration = out_datetime - ot_threshold_datetime
+                            ot_total_seconds = int(ot_duration.total_seconds())
+                            ot_hours = ot_total_seconds // 3600
+                            ot_minutes = (ot_total_seconds % 3600) // 60
+                            ot_seconds = ot_total_seconds % 60
+                            ot_time = f"{ot_hours:02d}:{ot_minutes:02d}:{ot_seconds:02d}"
+                
                 in_str = in_time.strftime('%H:%M:%S')
                 out_str = out_time.strftime('%H:%M:%S')
             else:
@@ -180,6 +209,9 @@ def process_attendance(records, start_date, end_date):
                 out_str = ''
                 remark = ''
                 late_by = ''
+                total_working_hours = ''
+                overtime = ''
+                ot_time = ''
             
             output_data.append({
                 'ID': emp_id,
@@ -188,7 +220,10 @@ def process_attendance(records, start_date, end_date):
                 'IN': in_str,
                 'OUT': out_str,
                 'Remark': remark,
-                'Late By': late_by
+                'Late By': late_by,
+                'Total working Hours': total_working_hours,
+                'Overtime': overtime,
+                'OT time': ot_time
             })
     
     return output_data
@@ -221,7 +256,7 @@ def process():
         df = pd.DataFrame(output_data)
         
         output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:  # type: ignore
             df.to_excel(writer, index=False, sheet_name='Attendance')
         
         output.seek(0)
