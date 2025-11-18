@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Attendance Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input[type="file"]:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+        
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 HR Attendance Portal</h1>
+        <p class="subtitle">Automated Biometric Data Processing</p>
+        
+        <form id="attendanceForm" method="POST" action="/process" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="biometric_file">📁 Upload Biometric Data (.txt)</label>
+                <input type="file" id="biometric_file" name="biometric_file" accept=".txt" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📅 Select Date Range</label>
+                <div class="date-range">
+                    <div>
+                        <input type="date" id="start_date" name="start_date" required>
+                        <small style="color: #888;">From Date</small>
+                    </div>
+                    <div>
+                        <input type="date" id="end_date" name="end_date" required>
+                        <small style="color: #888;">To Date</small>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">⬇️ Download Filtered Report</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing attendance data...</p>
+        </div>
+        
+        <div class="loading" id="success" style="display: none; color: #28a745;">
+            <p style="font-size: 18px; font-weight: 600;">✅ Download Complete!</p>
+            <p style="font-size: 14px; margin-top: 10px;">Your attendance report has been downloaded successfully.</p>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>ℹ️ How it works:</strong></p>
+            <p>1. Upload your biometric .txt file<br>
+               2. Select the date range you need<br>
+               3. Click download to get filtered Excel report<br>
+               • Automatically removes duplicates<br>
+               • Marks late entries (after 9:30 AM)<br>
+               • Shows all employees for selected dates</p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+            
+            // Hide loading and show success after a delay
+            setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+                
+                // Hide success message after 5 seconds
+                setTimeout(function() {
+                    document.getElementById('success').style.display = 'none';
+                }, 5000);
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
