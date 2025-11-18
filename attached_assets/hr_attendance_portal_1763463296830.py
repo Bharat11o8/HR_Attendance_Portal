@@ -123,16 +123,14 @@ def process_attendance(records, start_date, end_date):
                 in_str = in_time.strftime('%H:%M:%S')
                 out_str = out_time.strftime('%H:%M:%S')
                 
-                # Check overtime - just "yes" or blank
-                # For Rishi (ID=2), overtime threshold is 19:45:00
-                # For other employees, overtime threshold is 18:45:00
+                # Check overtime - ONLY for Rishi (ID=2)
+                # For Rishi: show "yes" if OUT time is after 19:45:00, otherwise blank
+                # For all other employees: always blank
                 if emp_id == 2:
                     overtime_threshold = datetime.strptime('19:45:00', '%H:%M:%S').time()
+                    overtime_str = 'yes' if out_time > overtime_threshold else ''
                 else:
-                    overtime_threshold = datetime.strptime('18:45:00', '%H:%M:%S').time()
-                
-                # Show "yes" if out time is after threshold, otherwise blank
-                overtime_str = 'yes' if out_time > overtime_threshold else ''
+                    overtime_str = ''
             else:
                 in_str = ''
                 out_str = ''
