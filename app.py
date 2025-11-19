@@ -266,10 +266,6 @@ def process_attendance(records, start_date, end_date):
     
     return output_data
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/process', methods=['POST'])
 def process():
     try:
