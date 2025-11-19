@@ -6,6 +6,39 @@ import re
 
 app = Flask(__name__)
 
+import os
+from functools import wraps
+from flask import Response, request
+
+# Basic auth from env vars
+AUTH_USER = os.environ.get("BASIC_AUTH_USER", "HR_123")
+AUTH_PASS = os.environ.get("BASIC_AUTH_PASS", "Bharat11o8")
+
+def check_auth(u, p):
+    return u == AUTH_USER and p == AUTH_PASS
+
+def authenticate():
+    return Response(
+        'Authentication required', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'}
+    )
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route("/")
+@requires_auth
+def index():
+    return render_template("index.html")
+
+
+
 # Hardcoded employee master data
 EMPLOYEE_MASTER = {
     2: "Rishi",
@@ -279,4 +312,9 @@ def process():
         return f"Error processing file: {str(e)}", 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use PORT env var set by Render (default 5000 for local dev)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    # Secret key from env var for session security
+    app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+    app.run(host='0.0.0.0', port=port, debug=debug)
