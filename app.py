@@ -183,16 +183,28 @@ def process_attendance(records, start_date, end_date):
                 work_seconds = work_total_seconds % 60
                 total_working_hours = f"{work_hours:02d}:{work_minutes:02d}:{work_seconds:02d}"
                 
-                # Calculate Overtime - ONLY for Rishi (ID=2)
-                # For Rishi: show "yes" if OUT time is after 19:45:00, otherwise blank
+                # Calculate Overtime
+                # For Rishi (ID=2): show "yes" if OUT time is after 19:45:00, otherwise blank
+                # For Saurabh (ID=26): calculate OT time after 18:00:00
                 # For all other employees: always blank
                 overtime = ''
                 ot_time = ''
                 
-                if emp_id == 2:  # Rishi only
+                if emp_id == 2:  # Rishi - just yes/blank
                     ot_threshold = datetime.strptime('19:45:00', '%H:%M:%S').time()
                     if out_time > ot_threshold:
                         overtime = 'yes'
+                elif emp_id == 26:  # Saurabh - calculate OT time
+                    ot_threshold = datetime.strptime('18:00:00', '%H:%M:%S').time()
+                    if out_time > ot_threshold:
+                        overtime = 'yes'
+                        ot_threshold_datetime = datetime.combine(date, ot_threshold)
+                        ot_duration = out_datetime - ot_threshold_datetime
+                        ot_total_seconds = int(ot_duration.total_seconds())
+                        ot_hours = ot_total_seconds // 3600
+                        ot_minutes = (ot_total_seconds % 3600) // 60
+                        ot_seconds = ot_total_seconds % 60
+                        ot_time = f"{ot_hours:02d}:{ot_minutes:02d}:{ot_seconds:02d}"
                 
                 in_str = in_time.strftime('%H:%M:%S')
                 out_str = out_time.strftime('%H:%M:%S')
@@ -209,6 +221,7 @@ def process_attendance(records, start_date, end_date):
                 'ID': emp_id,
                 'Name': emp_name,
                 'Date': date.strftime('%Y-%m-%d'),
+                'Day': date.strftime('%A'),
                 'IN': in_str,
                 'OUT': out_str,
                 'Remark': remark,
