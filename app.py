@@ -64,7 +64,9 @@ EMPLOYEE_MASTER = {
     32: "Prabhat",
     40: "Naman",
     41: "Ashish Rai",
-    42: "Bharat Maheshwari"
+    42: "Bharat Maheshwari",
+    43: "Trisha Kushwaha",
+    45: "Kashif"
 }
 
 def parse_biometric_file(file_content):
