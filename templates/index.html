@@ -155,6 +155,50 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .tabs-container {
+            display: flex;
+            background: #f1f3f9;
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            gap: 5px;
+        }
+        
+        .tabs-container button.tab-button {
+            flex: 1;
+            width: auto;
+            padding: 12px;
+            background: transparent;
+            color: #555;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0;
+        }
+        
+        .tabs-container button.tab-button:hover {
+            transform: none;
+            box-shadow: none;
+            background: rgba(102, 126, 234, 0.05);
+            color: #333;
+        }
+        
+        .tabs-container button.tab-button.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .tabs-container button.tab-button.active:hover {
+            transform: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            background: white;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -162,7 +206,13 @@
         <h1>📊 HR Attendance Portal</h1>
         <p class="subtitle">Automated Biometric Data Processing</p>
         
+        <div class="tabs-container">
+            <button id="tab-headoffice" type="button" class="tab-button active" onclick="switchTab('headoffice')">🏢 Head Office</button>
+            <button id="tab-warehouse" type="button" class="tab-button" onclick="switchTab('warehouse')">🏭 Warehouse</button>
+        </div>
+        
         <form id="attendanceForm" method="POST" action="/process" enctype="multipart/form-data">
+            <input type="hidden" id="department" name="department" value="headoffice">
             <div class="form-group">
                 <label for="biometric_file">📁 Upload Biometric Data (.txt)</label>
                 <input type="file" id="biometric_file" name="biometric_file" accept=".txt" required>
@@ -207,6 +257,12 @@
     </div>
     
     <script>
+        function switchTab(dept) {
+            document.getElementById('department').value = dept;
+            document.getElementById('tab-headoffice').classList.toggle('active', dept === 'headoffice');
+            document.getElementById('tab-warehouse').classList.toggle('active', dept === 'warehouse');
+        }
+
         document.getElementById('attendanceForm').addEventListener('submit', function(e) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('success').style.display = 'none';
