@@ -48,7 +48,7 @@ EMPLOYEE_MASTER = {
     7: "Gunjan",
     9: "Aarti",
     10: "Akansha Bajpai",
-    11: "Chirag Channa",
+    11: "Chirag",
     14: "Sumit",
     15: "Sanjay Dwivedi",
     17: "Himanshu Gandhi",
