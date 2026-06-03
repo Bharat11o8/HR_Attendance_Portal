@@ -70,6 +70,15 @@ EMPLOYEE_MASTER = {
     45: "Kashif"
 }
 
+WAREHOUSE_MASTER = {
+    1: "Amit",
+    2: "Ankit",
+    3: "SONU",
+    4: "Ravi'kant",
+    6: "Sashi Kumar",
+    7: "Saurav"
+}
+
 def parse_biometric_file(file_content):
     """Parse the biometric .txt file"""
     # Try different encodings
@@ -134,13 +143,13 @@ def parse_biometric_file(file_content):
     
     return records
 
-def process_attendance(records, start_date, end_date):
+def process_attendance(records, start_date, end_date, employee_master):
     """Process attendance records and generate output"""
     
     # Filter records by date range and employee list
     filtered_records = [
         r for r in records 
-        if r['EnNo'] in EMPLOYEE_MASTER 
+        if r['EnNo'] in employee_master 
         and start_date <= r['Date'] <= end_date
     ]
     
@@ -170,8 +179,8 @@ def process_attendance(records, start_date, end_date):
         date_range.append(current_date)
         current_date += timedelta(days=1)
     
-    for emp_id in sorted(EMPLOYEE_MASTER.keys()):
-        emp_name = EMPLOYEE_MASTER[emp_id]
+    for emp_id in sorted(employee_master.keys()):
+        emp_name = employee_master[emp_id]
         
         for date in date_range:
             key = (emp_id, date)
@@ -226,11 +235,11 @@ def process_attendance(records, start_date, end_date):
                 overtime = ''
                 ot_time = ''
                 
-                if emp_id == 2:  # Rishi - just yes/blank
+                if emp_id == 2 and employee_master.get(emp_id) == "Rishi":  # Rishi - just yes/blank
                     ot_threshold = datetime.strptime('19:45:00', '%H:%M:%S').time()
                     if out_time > ot_threshold:
                         overtime = 'yes'
-                elif emp_id == 26:  # Saurabh - calculate OT time
+                elif emp_id == 26 and employee_master.get(emp_id) == "Saurabh":  # Saurabh - calculate OT time
                     ot_threshold = datetime.strptime('18:00:00', '%H:%M:%S').time()
                     if out_time > ot_threshold:
                         overtime = 'yes'
@@ -275,19 +284,27 @@ def process():
         # Get uploaded file
         biometric_file = request.files['biometric_file']
         
-        # Get date range
+        # Get date range and department
         start_date_str = request.form['start_date']
         end_date_str = request.form['end_date']
+        department = request.form.get('department', 'headoffice')
         
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        
+        if department == 'warehouse':
+            employee_master = WAREHOUSE_MASTER
+            dept_label = 'Warehouse'
+        else:
+            employee_master = EMPLOYEE_MASTER
+            dept_label = 'HeadOffice'
         
         # Parse biometric data
         file_content = biometric_file.read()
         records = parse_biometric_file(file_content)
         
         # Process attendance
-        output_data = process_attendance(records, start_date, end_date)
+        output_data = process_attendance(records, start_date, end_date, employee_master)
         
         # Create Excel file
         df = pd.DataFrame(output_data)
@@ -298,7 +315,7 @@ def process():
         
         output.seek(0)
         
-        filename = f'Attendance_{start_date_str}_to_{end_date_str}.xlsx'
+        filename = f'Attendance_{dept_label}_{start_date_str}_to_{end_date_str}.xlsx'
         
         return send_file(
             output,
