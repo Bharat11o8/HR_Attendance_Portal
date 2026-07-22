@@ -301,6 +301,13 @@ def process():
         
         # Parse biometric data
         file_content = biometric_file.read()
+
+        # The browser gzips the upload to stay under Vercel's 4.5MB request
+        # body limit (FUNCTION_PAYLOAD_TOO_LARGE). Decompress if flagged.
+        if request.form.get('compressed') == 'gzip':
+            import gzip
+            file_content = gzip.decompress(file_content)
+
         records = parse_biometric_file(file_content)
         
         # Process attendance

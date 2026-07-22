@@ -263,20 +263,76 @@
             document.getElementById('tab-warehouse').classList.toggle('active', dept === 'warehouse');
         }
 
-        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('success').style.display = 'none';
-            
-            // Hide loading and show success after a delay
-            setTimeout(function() {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('success').style.display = 'block';
-                
-                // Hide success message after 5 seconds
-                setTimeout(function() {
-                    document.getElementById('success').style.display = 'none';
-                }, 5000);
-            }, 2000);
+        // Gzip a File in the browser so the upload stays under Vercel's
+        // 4.5MB request-body limit (avoids FUNCTION_PAYLOAD_TOO_LARGE).
+        async function gzipFile(file) {
+            if (typeof CompressionStream === 'undefined') return null; // unsupported browser
+            const stream = file.stream().pipeThrough(new CompressionStream('gzip'));
+            return await new Response(stream).blob();
+        }
+
+        function filenameFromDisposition(header, fallback) {
+            if (!header) return fallback;
+            const match = /filename\*?=(?:UTF-8'')?"?([^\";]+)"?/i.exec(header);
+            return match ? decodeURIComponent(match[1]) : fallback;
+        }
+
+        document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const loading = document.getElementById('loading');
+            const success = document.getElementById('success');
+            const form = e.target;
+            const fileInput = document.getElementById('biometric_file');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            loading.style.display = 'block';
+            success.style.display = 'none';
+
+            try {
+                const fd = new FormData();
+                const gz = await gzipFile(file);
+                if (gz) {
+                    fd.append('biometric_file', gz, file.name + '.gz');
+                    fd.append('compressed', 'gzip');
+                } else {
+                    // Fallback: send the raw file (older browsers).
+                    fd.append('biometric_file', file, file.name);
+                }
+                fd.append('start_date', document.getElementById('start_date').value);
+                fd.append('end_date', document.getElementById('end_date').value);
+                fd.append('department', document.getElementById('department').value);
+
+                const resp = await fetch(form.action, { method: 'POST', body: fd });
+
+                if (!resp.ok) {
+                    const msg = await resp.text();
+                    throw new Error(msg || ('Request failed (' + resp.status + ')'));
+                }
+
+                const blob = await resp.blob();
+                const name = filenameFromDisposition(
+                    resp.headers.get('Content-Disposition'),
+                    'Attendance.xlsx'
+                );
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                loading.style.display = 'none';
+                success.style.display = 'block';
+                setTimeout(function() { success.style.display = 'none'; }, 5000);
+            } catch (err) {
+                loading.style.display = 'none';
+                alert('Error: ' + err.message);
+            }
         });
     </script>
 </body>
