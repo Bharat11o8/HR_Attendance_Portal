@@ -58,16 +58,15 @@ EMPLOYEE_MASTER = {
     31: "Anshika Singh",
     34: "Pankaj Vij",
     35: "Kiran",
-    36: "Hardevi",
-    37: "Sadhana",
-    38: "Kanchani",
     32: "Prabhat",
     40: "Naman",
     41: "Ashish Rai",
     42: "Bharat Maheshwari",
-    43: "Trisha Kushwaha",
     44: "Kapil",
-    45: "Kashif"
+    45: "Kashif",
+    47: "Kartik",
+    49: "Gaurav Chopra",
+    50: "Jai Gandhi"
 }
 
 WAREHOUSE_MASTER = {
