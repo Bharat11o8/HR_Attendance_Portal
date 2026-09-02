@@ -7,33 +7,8 @@ import re
 app = Flask(__name__)
 
 import os
-from functools import wraps
-from flask import Response, request
-
-# Basic auth from env vars
-AUTH_USER = os.environ.get("BASIC_AUTH_USER", "HR_123")
-AUTH_PASS = os.environ.get("BASIC_AUTH_PASS", "Bharat11o8")
-
-def check_auth(u, p):
-    return u == AUTH_USER and p == AUTH_PASS
-
-def authenticate():
-    return Response(
-        'Authentication required', 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'}
-    )
-
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
-        return f(*args, **kwargs)
-    return decorated
 
 @app.route("/")
-@requires_auth
 def index():
     return render_template("index.html")
 
